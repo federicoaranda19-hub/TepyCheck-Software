@@ -18,13 +18,15 @@ export function AuthForm() {
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(false)
 
+  // Estados controlados
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setCargando(true)
-    const form = new FormData(e.currentTarget)
-    const email = String(form.get('email') ?? '').trim()
-    const password = String(form.get('password') ?? '')
 
     const res =
       modo === 'login'
@@ -32,10 +34,11 @@ export function AuthForm() {
         : await authClient.signUp.email({
             email,
             password,
-            name: String(form.get('name') ?? '').trim(),
+            name: name.trim(),
           })
 
     setCargando(false)
+
     if (res.error) {
       setError(
         modo === 'login'
@@ -44,6 +47,12 @@ export function AuthForm() {
       )
       return
     }
+
+    // Limpiar campos
+    setName('')
+    setEmail('')
+    setPassword('')
+
     router.push('/menu')
     router.refresh()
   }
@@ -75,9 +84,18 @@ export function AuthForm() {
         {modo === 'registro' && (
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Nombre</Label>
-            <Input id="name" name="name" required autoComplete="name" className="h-11" />
+            <Input
+              id="name"
+              name="name"
+              required
+              autoComplete="name"
+              className="h-11"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
         )}
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -87,8 +105,11 @@ export function AuthForm() {
             required
             autoComplete="email"
             className="h-11"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
+
         <div className="flex flex-col gap-2">
           <Label htmlFor="password">Contraseña</Label>
           <Input
@@ -99,6 +120,8 @@ export function AuthForm() {
             minLength={8}
             autoComplete={modo === 'login' ? 'current-password' : 'new-password'}
             className="h-11"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
