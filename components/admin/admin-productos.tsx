@@ -1,23 +1,92 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { Plus, Pencil, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ActionForm, Estado, MiniAction, Panel } from '@/components/admin/ui'
-import { crearProducto, toggleProducto } from '@/app/actions/admin'
+import { crearProducto, toggleProducto, editarProducto, eliminarProducto } from '@/app/actions/admin'
 
-type Producto = { id: number; descripcion: string; rubro: string; marca: string; unidad: string; activo: boolean }
+type Producto = {
+  id: number
+  descripcion: string
+  rubro: string
+  marca: string
+  unidad: string
+  activo: boolean
+}
 
 export function AdminProductos({ productos }: { productos: Producto[] }) {
   const [q, setQ] = useState('')
+  const [editando, setEditando] = useState<Producto | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  // Estados del formulario de edición
+  const [descripcion, setDescripcion] = useState('')
+  const [rubro, setRubro] = useState('')
+  const [marca, setMarca] = useState('')
+  const [unidad, setUnidad] = useState('')
+
   const lista = productos.filter((p) =>
     `${p.descripcion} ${p.marca} ${p.rubro}`.toLowerCase().includes(q.toLowerCase()),
   )
 
+  function empezarEdicion(p: Producto) {
+    alert('Entró a empezarEdicion con: ' + p.descripcion)
+    setEditando(p)
+    setDescripcion(p.descripcion)
+    setRubro(p.rubro)
+    setMarca(p.marca)
+    setUnidad(p.unidad)
+  }
+
+  function cancelarEdicion() {
+    setEditando(null)
+    setDescripcion('')
+    setRubro('')
+    setMarca('')
+    setUnidad('')
+  }
+
+  function guardarEdicion() {
+    if (!editando) return
+
+    const formData = new FormData()
+    formData.set('id', String(editando.id))
+    formData.set('descripcion', descripcion.trim())
+    formData.set('rubro', rubro.trim())
+    formData.set('marca', marca.trim())
+    formData.set('unidad', unidad.trim())
+
+    startTransition(async () => {
+      try {
+        await editarProducto(formData)
+        toast.success('Producto actualizado')
+        cancelarEdicion()
+      } catch (err) {
+        console.error(err)
+        toast.error(err instanceof Error ? err.message : 'No se pudo guardar')
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col gap-4">
+      {/* ===== PRUEBA TEMPORAL ===== */}
+      {editando ? (
+        <div className="rounded-lg bg-red-500 p-4 text-white">
+          ESTÁ EDITANDO: {editando.descripcion}
+        </div>
+      ) : (
+        <div className="rounded-lg bg-gray-300 p-4">
+          No hay ningún producto en edición
+        </div>
+      )}
+      {/* ===== FIN PRUEBA ===== */}
+
+      {/* Nuevo producto */}
       <Panel titulo="Nuevo producto">
         <ActionForm action={crearProducto} exito="Producto creado" className="grid gap-3 md:grid-cols-5 md:items-end">
           <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -44,6 +113,71 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
         </ActionForm>
       </Panel>
 
+      {/* Formulario de edición */}
+      {editando && (
+        <Panel titulo={`Editando: ${editando.descripcion}`}>
+          <div className="grid gap-3 md:grid-cols-5 md:items-end">
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <Label htmlFor="e-desc">Descripción</Label>
+              <Input
+                id="e-desc"
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                maxLength={120}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="e-rubro">Rubro</Label>
+              <Input
+                id="e-rubro"
+                value={rubro}
+                onChange={(e) => setRubro(e.target.value)}
+                maxLength={60}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="e-marca">Marca</Label>
+              <Input
+                id="e-marca"
+                value={marca}
+                onChange={(e) => setMarca(e.target.value)}
+                maxLength={60}
+              />
+            </div>
+            <div className="flex gap-2">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor="e-unidad">Unidad</Label>
+                <Input
+                  id="e-unidad"
+                  value={unidad}
+                  onChange={(e) => setUnidad(e.target.value)}
+                  maxLength={30}
+                />
+              </div>
+              <Button
+                type="button"
+                className="self-end"
+                disabled={pending}
+                onClick={guardarEdicion}
+              >
+                {pending ? 'Guardando...' : 'Guardar'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="self-end"
+                onClick={cancelarEdicion}
+                disabled={pending}
+              >
+                <X />
+              </Button>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      {/* Listado de productos */}
       <Panel titulo={`Productos (${productos.length})`}>
         <Input
           type="search"
@@ -52,6 +186,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
           onChange={(e) => setQ(e.target.value)}
           aria-label="Filtrar productos"
         />
+
         <ul className="flex flex-col divide-y">
           {lista.map((p) => (
             <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
@@ -61,12 +196,35 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
                   {p.marca} · {p.rubro} · {p.unidad}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <Estado activo={p.activo} />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    alert('Clic en Editar funciona')
+                    empezarEdicion(p)
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </Button>
+
                 <MiniAction
                   action={toggleProducto}
                   fields={{ id: p.id }}
                   label={p.activo ? 'Desactivar' : 'Activar'}
+                />
+
+                <MiniAction
+                  action={eliminarProducto}
+                  fields={{ id: p.id }}
+                  label="Eliminar"
+                  variant="destructive"
+                  confirmar="¿Estás seguro de que querés eliminar este producto? Esta acción no se puede deshacer."
                 />
               </div>
             </li>

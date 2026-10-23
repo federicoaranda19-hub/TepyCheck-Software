@@ -23,12 +23,14 @@ export function ActionForm({
   className,
   exito,
   reset = true,
+  onSuccess,
 }: {
   action: (form: FormData) => Promise<void>
   children: ReactNode
   className?: string
   exito?: string
   reset?: boolean
+  onSuccess?: () => void
 }) {
   const ref = useRef<HTMLFormElement>(null)
   const [pending, start] = useTransition()
@@ -45,9 +47,11 @@ export function ActionForm({
             await action(data)
             if (exito) toast.success(exito)
             if (reset) ref.current?.reset()
-          } catch {
-            toast.error('No se pudo guardar. Revisá los datos.')
-          }
+            onSuccess?.()
+} catch (err) {
+  console.error(err)
+  toast.error(err instanceof Error ? err.message : 'No se pudo guardar. Revisá los datos.')
+}
         })
       }}
     >
@@ -82,6 +86,7 @@ export function MiniAction({
         start(async () => {
           try {
             await action(data)
+            toast.success(label === 'Eliminar' ? 'Producto eliminado' : 'Acción realizada')
           } catch {
             toast.error('No se pudo completar la acción.')
           }

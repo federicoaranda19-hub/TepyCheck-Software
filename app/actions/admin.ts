@@ -84,6 +84,31 @@ export async function toggleProducto(form: FormData) {
   refrescar()
 }
 
+export async function editarProducto(form: FormData) {
+  await assertAdmin()
+  const id = entero(form, 'id')
+  await db
+    .update(productos)
+    .set({
+      descripcion: texto(form, 'descripcion'),
+      rubro: texto(form, 'rubro', 60),
+      marca: texto(form, 'marca', 60),
+      unidad: texto(form, 'unidad', 30),
+    })
+    .where(eq(productos.id, id))
+  refrescar()
+}
+
+export async function eliminarProducto(form: FormData) {
+  await assertAdmin()
+  const id = entero(form, 'id')
+  // Primero borramos precios y promociones relacionadas para evitar errores de clave foránea
+  await db.delete(precios).where(eq(precios.productoId, id))
+  await db.delete(promociones).where(eq(promociones.productoId, id))
+  await db.delete(productos).where(eq(productos.id, id))
+  refrescar()
+}
+
 export async function guardarPrecio(form: FormData) {
   await assertAdmin()
   const productoId = entero(form, 'productoId')
