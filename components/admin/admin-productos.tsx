@@ -23,7 +23,6 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
   const [editando, setEditando] = useState<Producto | null>(null)
   const [pending, startTransition] = useTransition()
 
-  // Estados del formulario de edición
   const [descripcion, setDescripcion] = useState('')
   const [rubro, setRubro] = useState('')
   const [marca, setMarca] = useState('')
@@ -34,7 +33,6 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
   )
 
   function empezarEdicion(p: Producto) {
-    alert('Entró a empezarEdicion con: ' + p.descripcion)
     setEditando(p)
     setDescripcion(p.descripcion)
     setRubro(p.rubro)
@@ -74,18 +72,6 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ===== PRUEBA TEMPORAL ===== */}
-      {editando ? (
-        <div className="rounded-lg bg-red-500 p-4 text-white">
-          ESTÁ EDITANDO: {editando.descripcion}
-        </div>
-      ) : (
-        <div className="rounded-lg bg-gray-300 p-4">
-          No hay ningún producto en edición
-        </div>
-      )}
-      {/* ===== FIN PRUEBA ===== */}
-
       {/* Nuevo producto */}
       <Panel titulo="Nuevo producto">
         <ActionForm action={crearProducto} exito="Producto creado" className="grid gap-3 md:grid-cols-5 md:items-end">
@@ -113,9 +99,13 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
         </ActionForm>
       </Panel>
 
-      {/* Formulario de edición */}
+      {/* Formulario de edición (destacado) */}
       {editando && (
-        <Panel titulo={`Editando: ${editando.descripcion}`}>
+<section className="flex flex-col gap-4 rounded-xl border-2 border-red-500 bg-card p-4 md:p-5">
+  <h2 className="font-semibold text-red-600">
+            Editando: {editando.descripcion}
+          </h2>
+
           <div className="grid gap-3 md:grid-cols-5 md:items-end">
             <div className="flex flex-col gap-1.5 md:col-span-2">
               <Label htmlFor="e-desc">Descripción</Label>
@@ -154,12 +144,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
                   maxLength={30}
                 />
               </div>
-              <Button
-                type="button"
-                className="self-end"
-                disabled={pending}
-                onClick={guardarEdicion}
-              >
+              <Button type="button" className="self-end" disabled={pending} onClick={guardarEdicion}>
                 {pending ? 'Guardando...' : 'Guardar'}
               </Button>
               <Button
@@ -174,7 +159,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
               </Button>
             </div>
           </div>
-        </Panel>
+        </section>
       )}
 
       {/* Listado de productos */}
@@ -200,15 +185,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
               <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <Estado activo={p.activo} />
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    alert('Clic en Editar funciona')
-                    empezarEdicion(p)
-                  }}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => empezarEdicion(p)}>
                   <Pencil className="h-4 w-4" />
                   Editar
                 </Button>
