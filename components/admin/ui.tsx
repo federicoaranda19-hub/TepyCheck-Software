@@ -84,12 +84,18 @@ export function MiniAction({
         const data = new FormData()
         for (const [k, v] of Object.entries(fields)) data.set(k, String(v))
         start(async () => {
-          try {
-            await action(data)
-            toast.success(label === 'Eliminar' ? 'Producto eliminado' : 'Acción realizada')
-          } catch {
-            toast.error('No se pudo completar la acción.')
-          }
+try {
+  await action(data)
+  if (label === 'Eliminar') {
+    toast('Producto eliminado', {
+      icon: '🗑️',
+    })
+  } else {
+    toast.success('Acción realizada')
+  }
+} catch {
+  toast.error('No se pudo completar la acción.')
+}
         })
       }}
     >

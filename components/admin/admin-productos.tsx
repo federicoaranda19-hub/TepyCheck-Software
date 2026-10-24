@@ -20,6 +20,8 @@ type Producto = {
 
 export function AdminProductos({ productos }: { productos: Producto[] }) {
   const [q, setQ] = useState('')
+  const [filtroRubro, setFiltroRubro] = useState('')
+  const [filtroMarca, setFiltroMarca] = useState('')
   const [editando, setEditando] = useState<Producto | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -28,9 +30,17 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
   const [marca, setMarca] = useState('')
   const [unidad, setUnidad] = useState('')
 
-  const lista = productos.filter((p) =>
-    `${p.descripcion} ${p.marca} ${p.rubro}`.toLowerCase().includes(q.toLowerCase()),
-  )
+  // Listas únicas de rubros y marcas para los select
+  const rubros = Array.from(new Set(productos.map((p) => p.rubro))).sort()
+  const marcas = Array.from(new Set(productos.map((p) => p.marca))).sort()
+
+  const lista = productos.filter((p) => {
+    const texto = `${p.descripcion} ${p.marca} ${p.rubro}`.toLowerCase()
+    const coincideTexto = texto.includes(q.toLowerCase())
+    const coincideRubro = !filtroRubro || p.rubro === filtroRubro
+    const coincideMarca = !filtroMarca || p.marca === filtroMarca
+    return coincideTexto && coincideRubro && coincideMarca
+  })
 
   function empezarEdicion(p: Producto) {
     setEditando(p)
@@ -99,13 +109,10 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
         </ActionForm>
       </Panel>
 
-      {/* Formulario de edición (destacado) */}
+      {/* Formulario de edición */}
       {editando && (
-<section className="flex flex-col gap-4 rounded-xl border-2 border-red-500 bg-card p-4 md:p-5">
-  <h2 className="font-semibold text-red-600">
-            Editando: {editando.descripcion}
-          </h2>
-
+        <section className="flex flex-col gap-4 rounded-xl border-2 border-red-500 bg-card p-4 md:p-5">
+          <h2 className="font-semibold text-red-600">Editando: {editando.descripcion}</h2>
           <div className="grid gap-3 md:grid-cols-5 md:items-end">
             <div className="flex flex-col gap-1.5 md:col-span-2">
               <Label htmlFor="e-desc">Descripción</Label>
@@ -162,50 +169,86 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
         </section>
       )}
 
-      {/* Listado de productos */}
-      <Panel titulo={`Productos (${productos.length})`}>
-        <Input
-          type="search"
-          placeholder="Filtrar productos..."
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          aria-label="Filtrar productos"
-        />
+      {/* Listado con filtros */}
+      <Panel titulo={`Productos (${lista.length} de ${productos.length})`}>
+        <div className="grid gap-3 md:grid-cols-3">
+          <Input
+            type="search"
+            placeholder="Buscar por nombre..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            aria-label="Buscar productos"
+          />
 
-        <ul className="flex flex-col divide-y">
-          {lista.map((p) => (
-            <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{p.descripcion}</p>
-                <p className="text-xs text-muted-foreground">
-                  {p.marca} · {p.rubro} · {p.unidad}
-                </p>
-              </div>
+          <select
+            value={filtroRubro}
+            onChange={(e) => setFiltroRubro(e.target.value)}
+            className="h-10 w-full rounded-md border border-input bg-card px-3 text-sm"
+            aria-label="Filtrar por rubro"
+          >
+            <option value="">Todos los rubros</option>
+            {rubros.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <Estado activo={p.activo} />
+          <select
+            value={filtroMarca}
+            onChange={(e) => setFiltroMarca(e.target.value)}
+            className="h-10 w-full rounded-md border border-input bg-card px-3 text-sm"
+            aria-label="Filtrar por marca"
+          >
+            <option value="">Todas las marcas</option>
+            {marcas.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
 
-                <Button type="button" variant="outline" size="sm" onClick={() => empezarEdicion(p)}>
-                  <Pencil className="h-4 w-4" />
-                  Editar
-                </Button>
-
-                <MiniAction
-                  action={toggleProducto}
-                  fields={{ id: p.id }}
-                  label={p.activo ? 'Desactivar' : 'Activar'}
-                />
-
-                <MiniAction
-                  action={eliminarProducto}
-                  fields={{ id: p.id }}
-                  label="Eliminar"
-                  variant="destructive"
-                  confirmar="¿Estás seguro de que querés eliminar este producto? Esta acción no se puede deshacer."
-                />
-              </div>
+        <ul className="mt-3 flex flex-col divide-y">
+          {lista.length === 0 ? (
+            <li className="py-6 text-center text-sm text-muted-foreground">
+              No se encontraron productos con esos filtros.
             </li>
-          ))}
+          ) : (
+            lista.map((p) => (
+              <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{p.descripcion}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {p.marca} · {p.rubro} · {p.unidad}
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Estado activo={p.activo} />
+
+                  <Button type="button" variant="outline" size="sm" onClick={() => empezarEdicion(p)}>
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Button>
+
+                  <MiniAction
+                    action={toggleProducto}
+                    fields={{ id: p.id }}
+                    label={p.activo ? 'Desactivar' : 'Activar'}
+                  />
+
+                  <MiniAction
+                    action={eliminarProducto}
+                    fields={{ id: p.id }}
+                    label="Eliminar"
+                    variant="destructive"
+                    confirmar="¿Estás seguro de que querés eliminar este producto? Esta acción no se puede deshacer."
+                  />
+                </div>
+              </li>
+            ))
+          )}
         </ul>
       </Panel>
     </div>
