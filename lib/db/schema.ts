@@ -74,6 +74,7 @@ export const productos = pgTable('productos', {
   rubro: text('rubro').notNull(),
   marca: text('marca').notNull(),
   unidad: text('unidad').notNull().default('unidad'),
+  imagen: text('imagen'), // URL de la imagen (opcional)
   activo: boolean('activo').notNull().default(true),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })

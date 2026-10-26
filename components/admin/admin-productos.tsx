@@ -15,6 +15,7 @@ type Producto = {
   rubro: string
   marca: string
   unidad: string
+  imagen: string | null
   activo: boolean
 }
 
@@ -29,8 +30,8 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
   const [rubro, setRubro] = useState('')
   const [marca, setMarca] = useState('')
   const [unidad, setUnidad] = useState('')
+  const [imagen, setImagen] = useState('')
 
-  // Listas únicas de rubros y marcas para los select
   const rubros = Array.from(new Set(productos.map((p) => p.rubro))).sort()
   const marcas = Array.from(new Set(productos.map((p) => p.marca))).sort()
 
@@ -48,6 +49,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
     setRubro(p.rubro)
     setMarca(p.marca)
     setUnidad(p.unidad)
+    setImagen(p.imagen ?? '')
   }
 
   function cancelarEdicion() {
@@ -56,6 +58,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
     setRubro('')
     setMarca('')
     setUnidad('')
+    setImagen('')
   }
 
   function guardarEdicion() {
@@ -67,6 +70,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
     formData.set('rubro', rubro.trim())
     formData.set('marca', marca.trim())
     formData.set('unidad', unidad.trim())
+    formData.set('imagen', imagen.trim())
 
     startTransition(async () => {
       try {
@@ -84,7 +88,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
     <div className="flex flex-col gap-4">
       {/* Nuevo producto */}
       <Panel titulo="Nuevo producto">
-        <ActionForm action={crearProducto} exito="Producto creado" className="grid gap-3 md:grid-cols-5 md:items-end">
+        <ActionForm action={crearProducto} exito="Producto creado" className="grid gap-3 md:grid-cols-6 md:items-end">
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <Label htmlFor="p-desc">Descripción</Label>
             <Input id="p-desc" name="descripcion" required maxLength={120} placeholder="Yerba mate 1 kg" />
@@ -97,15 +101,17 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
             <Label htmlFor="p-marca">Marca</Label>
             <Input id="p-marca" name="marca" required maxLength={60} placeholder="Taragüí" />
           </div>
-          <div className="flex gap-2">
-            <div className="flex flex-1 flex-col gap-1.5">
-              <Label htmlFor="p-unidad">Unidad</Label>
-              <Input id="p-unidad" name="unidad" required maxLength={30} defaultValue="unidad" />
-            </div>
-            <Button type="submit" size="icon" className="self-end" aria-label="Crear producto">
-              <Plus />
-            </Button>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="p-unidad">Unidad</Label>
+            <Input id="p-unidad" name="unidad" required maxLength={30} defaultValue="unidad" />
           </div>
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <Label htmlFor="p-imagen">URL de imagen</Label>
+            <Input id="p-imagen" name="imagen" placeholder="https://..." />
+          </div>
+          <Button type="submit" size="icon" className="self-end" aria-label="Crear producto">
+            <Plus />
+          </Button>
         </ActionForm>
       </Panel>
 
@@ -113,7 +119,7 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
       {editando && (
         <section className="flex flex-col gap-4 rounded-xl border-2 border-red-500 bg-card p-4 md:p-5">
           <h2 className="font-semibold text-red-600">Editando: {editando.descripcion}</h2>
-          <div className="grid gap-3 md:grid-cols-5 md:items-end">
+          <div className="grid gap-3 md:grid-cols-6 md:items-end">
             <div className="flex flex-col gap-1.5 md:col-span-2">
               <Label htmlFor="e-desc">Descripción</Label>
               <Input
@@ -125,32 +131,21 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="e-rubro">Rubro</Label>
-              <Input
-                id="e-rubro"
-                value={rubro}
-                onChange={(e) => setRubro(e.target.value)}
-                maxLength={60}
-              />
+              <Input id="e-rubro" value={rubro} onChange={(e) => setRubro(e.target.value)} maxLength={60} />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="e-marca">Marca</Label>
-              <Input
-                id="e-marca"
-                value={marca}
-                onChange={(e) => setMarca(e.target.value)}
-                maxLength={60}
-              />
+              <Input id="e-marca" value={marca} onChange={(e) => setMarca(e.target.value)} maxLength={60} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="e-unidad">Unidad</Label>
+              <Input id="e-unidad" value={unidad} onChange={(e) => setUnidad(e.target.value)} maxLength={30} />
+            </div>
+            <div className="flex flex-col gap-1.5 md:col-span-2">
+              <Label htmlFor="e-imagen">URL de imagen</Label>
+              <Input id="e-imagen" value={imagen} onChange={(e) => setImagen(e.target.value)} placeholder="https://..." />
             </div>
             <div className="flex gap-2">
-              <div className="flex flex-1 flex-col gap-1.5">
-                <Label htmlFor="e-unidad">Unidad</Label>
-                <Input
-                  id="e-unidad"
-                  value={unidad}
-                  onChange={(e) => setUnidad(e.target.value)}
-                  maxLength={30}
-                />
-              </div>
               <Button type="button" className="self-end" disabled={pending} onClick={guardarEdicion}>
                 {pending ? 'Guardando...' : 'Guardar'}
               </Button>
@@ -166,6 +161,12 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
               </Button>
             </div>
           </div>
+          {imagen && (
+            <div className="mt-2">
+              <p className="mb-1 text-xs text-muted-foreground">Vista previa:</p>
+              <img src={imagen} alt="Vista previa" className="h-20 w-20 rounded-md object-cover border" />
+            </div>
+          )}
         </section>
       )}
 
@@ -179,7 +180,6 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
             onChange={(e) => setQ(e.target.value)}
             aria-label="Buscar productos"
           />
-
           <select
             value={filtroRubro}
             onChange={(e) => setFiltroRubro(e.target.value)}
@@ -193,7 +193,6 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
               </option>
             ))}
           </select>
-
           <select
             value={filtroMarca}
             onChange={(e) => setFiltroMarca(e.target.value)}
@@ -217,27 +216,33 @@ export function AdminProductos({ productos }: { productos: Producto[] }) {
           ) : (
             lista.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{p.descripcion}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {p.marca} · {p.rubro} · {p.unidad}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  {p.imagen ? (
+                    <img src={p.imagen} alt="" className="h-10 w-10 shrink-0 rounded object-cover border" />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border bg-muted text-xs text-muted-foreground">
+                      —
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{p.descripcion}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {p.marca} · {p.rubro} · {p.unidad}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
                   <Estado activo={p.activo} />
-
                   <Button type="button" variant="outline" size="sm" onClick={() => empezarEdicion(p)}>
                     <Pencil className="h-4 w-4" />
                     Editar
                   </Button>
-
                   <MiniAction
                     action={toggleProducto}
                     fields={{ id: p.id }}
                     label={p.activo ? 'Desactivar' : 'Activar'}
                   />
-
                   <MiniAction
                     action={eliminarProducto}
                     fields={{ id: p.id }}

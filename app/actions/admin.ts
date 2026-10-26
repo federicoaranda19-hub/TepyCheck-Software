@@ -66,11 +66,13 @@ export async function toggleSupermercado(form: FormData) {
 
 export async function crearProducto(form: FormData) {
   await assertAdmin()
+  const imagen = String(form.get('imagen') ?? '').trim()
   await db.insert(productos).values({
     descripcion: texto(form, 'descripcion'),
     rubro: texto(form, 'rubro', 60),
     marca: texto(form, 'marca', 60),
     unidad: texto(form, 'unidad', 30),
+    imagen: imagen || null,
   })
   refrescar()
 }
@@ -87,6 +89,7 @@ export async function toggleProducto(form: FormData) {
 export async function editarProducto(form: FormData) {
   await assertAdmin()
   const id = entero(form, 'id')
+  const imagen = String(form.get('imagen') ?? '').trim()
   await db
     .update(productos)
     .set({
@@ -94,6 +97,7 @@ export async function editarProducto(form: FormData) {
       rubro: texto(form, 'rubro', 60),
       marca: texto(form, 'marca', 60),
       unidad: texto(form, 'unidad', 30),
+      imagen: imagen || null,
     })
     .where(eq(productos.id, id))
   refrescar()

@@ -20,6 +20,7 @@ export type ProductoCatalogo = {
   rubro: string
   marca: string
   unidad: string
+  imagen: string | null
   precios: Record<number, PrecioEnSuper>
 }
 
@@ -62,6 +63,7 @@ export async function getCatalogo(): Promise<ProductoCatalogo[]> {
       rubro: p.rubro,
       marca: p.marca,
       unidad: p.unidad,
+      imagen: p.imagen ?? null,
       precios: {},
     })
   }
