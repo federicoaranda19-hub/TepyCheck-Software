@@ -8,7 +8,14 @@ import { cn } from '@/lib/utils'
 export default async function MenuPage() {
   const user = await getCurrentUser()
   const rol = user?.role ?? null
-  const items = NAV_ITEMS.filter((i) => i.acceso !== 'admin' || rol === 'admin')
+const items = NAV_ITEMS.filter((item) => {
+  // Administración: solo admin
+  if (item.acceso === 'admin') return rol === 'admin'
+  // Mi Historial (cliente): lo ven clientes e invitados (bloqueado);
+  // el admin no lo ve ni bloqueado
+  if (item.acceso === 'cliente') return rol !== 'admin'
+  return true
+})
 
   return (
     <div className="flex flex-col gap-6">
