@@ -5,7 +5,7 @@ export type NavItem = {
   label: string
   descripcion: string
   icon: 'carrito' | 'historial' | 'catalogo' | 'promociones' | 'admin'
-  acceso: 'todos' | 'usuario' | 'admin'
+  acceso: 'todos' | 'usuario' | 'cliente' | 'admin'
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -21,7 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Mi Historial',
     descripcion: 'Tus simulaciones guardadas',
     icon: 'historial',
-    acceso: 'usuario',
+    acceso: 'cliente', // solo clientes, no admin
   },
   {
     href: '/catalogo',
@@ -49,5 +49,6 @@ export const NAV_ITEMS: NavItem[] = [
 export function puedeAcceder(item: NavItem, rol: Rol | null) {
   if (item.acceso === 'todos') return true
   if (item.acceso === 'usuario') return rol !== null
+  if (item.acceso === 'cliente') return rol === 'cliente'
   return rol === 'admin'
 }
