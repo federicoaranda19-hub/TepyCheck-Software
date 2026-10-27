@@ -21,6 +21,15 @@ type ItemInput = { productoId: number; cantidad: number }
 
 type Resultado = { ok: true; id: number } | { ok: false; error: string }
 
+type LineaItem = {
+  productoId: number
+  descripcion: string
+  cantidad: number
+  precioRegular: string
+  precioAbonar: string
+  subtotal: string
+}
+
 async function getUserId() {
   const user = await getCurrentUser()
   if (!user) throw new Error('Unauthorized')
@@ -87,7 +96,7 @@ export async function guardarSimulacion(
       ),
   ])
 
-  const lineas = []
+  const lineas: LineaItem[] = []
   let montoRegular = 0
   let montoTotal = 0
   let cantidadProductos = 0
@@ -98,6 +107,7 @@ export async function guardarSimulacion(
     if (!prod || !precio) {
       return { ok: false, error: 'Algún producto ya no está disponible en este supermercado.' }
     }
+
     const regular = Number(precio.precioRegular)
     const mejorPromo = promos
       .filter((p) => p.productoId === productoId)
@@ -105,12 +115,14 @@ export async function guardarSimulacion(
         const v = Number(p.precioPromo)
         return min === null || v < min ? v : min
       }, null)
+
     const abonar = mejorPromo !== null && mejorPromo < regular ? mejorPromo : regular
     const subtotal = Math.round(abonar * cantidad * 100) / 100
 
     montoRegular += regular * cantidad
     montoTotal += subtotal
     cantidadProductos += cantidad
+
     lineas.push({
       productoId,
       descripcion: prod.descripcion,
@@ -122,7 +134,7 @@ export async function guardarSimulacion(
   }
 
   const id = await db.transaction(async (tx) => {
-    const [sim] = await tx
+    const insertados = await tx
       .insert(simulaciones)
       .values({
         userId,
@@ -133,9 +145,24 @@ export async function guardarSimulacion(
         montoTotal: montoTotal.toFixed(2),
       })
       .returning({ id: simulaciones.id })
-    await tx
-      .insert(simulacionItems)
-      .values(lineas.map((l) => ({ ...l, simulacionId: sim.id })))
+
+    const sim = insertados[0]
+    if (!sim) {
+      throw new Error('No se pudo crear la simulación')
+    }
+
+    await tx.insert(simulacionItems).values(
+      lineas.map((l) => ({
+        simulacionId: sim.id,
+        productoId: l.productoId,
+        descripcion: l.descripcion,
+        cantidad: l.cantidad,
+        precioRegular: l.precioRegular,
+        precioAbonar: l.precioAbonar,
+        subtotal: l.subtotal,
+      })),
+    )
+
     return sim.id
   })
 
@@ -150,6 +177,7 @@ export async function eliminarSimulacion(id: number) {
     .from(simulaciones)
     .where(and(eq(simulaciones.id, id), eq(simulaciones.userId, userId)))
   if (!sim) return
+
   await db.delete(simulacionItems).where(eq(simulacionItems.simulacionId, sim.id))
   await db
     .delete(simulaciones)

@@ -131,9 +131,11 @@ export function Carrito({
             value={supermercadoId ? String(supermercadoId) : undefined}
             onValueChange={(v) => setSupermercadoId(Number(v))}
           >
-            <SelectTrigger aria-labelledby="super-label" className="h-11 w-full bg-card">
-              <SelectValue placeholder="Seleccioná un supermercado" />
-            </SelectTrigger>
+<SelectTrigger aria-labelledby="super-label" className="h-11 w-full bg-card">
+  <SelectValue placeholder="Seleccioná un supermercado">
+    {supermercado?.nombre ?? 'Seleccioná un supermercado'}
+  </SelectValue>
+</SelectTrigger>
             <SelectContent>
               {supermercados.map((s) => (
                 <SelectItem key={s.id} value={String(s.id)}>

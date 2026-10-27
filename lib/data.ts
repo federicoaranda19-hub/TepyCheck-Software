@@ -101,21 +101,23 @@ export type PromocionVigente = {
   marca: string
   rubro: string
   supermercado: string
+  imagen: string | null
 }
 
 export async function getPromocionesVigentes(): Promise<PromocionVigente[]> {
   const rows = await db
-    .select({
-      id: promociones.id,
-      titulo: promociones.titulo,
-      precioPromo: promociones.precioPromo,
-      fechaFin: promociones.fechaFin,
-      producto: productos.descripcion,
-      marca: productos.marca,
-      rubro: productos.rubro,
-      supermercado: supermercados.nombre,
-      precioRegular: precios.precioRegular,
-    })
+.select({
+  id: promociones.id,
+  titulo: promociones.titulo,
+  precioPromo: promociones.precioPromo,
+  fechaFin: promociones.fechaFin,
+  producto: productos.descripcion,
+  marca: productos.marca,
+  rubro: productos.rubro,
+  supermercado: supermercados.nombre,
+  precioRegular: precios.precioRegular,
+  imagen: productos.imagen,
+})
     .from(promociones)
     .innerJoin(productos, eq(productos.id, promociones.productoId))
     .innerJoin(supermercados, eq(supermercados.id, promociones.supermercadoId))
@@ -129,9 +131,10 @@ export async function getPromocionesVigentes(): Promise<PromocionVigente[]> {
     .where(and(promoVigente(), eq(productos.activo, true), eq(supermercados.activo, true)))
     .orderBy(asc(promociones.fechaFin))
 
-  return rows.map((r) => ({
-    ...r,
-    precioPromo: Number(r.precioPromo),
-    precioRegular: r.precioRegular === null ? null : Number(r.precioRegular),
-  }))
+return rows.map((r) => ({
+  ...r,
+  precioPromo: Number(r.precioPromo),
+  precioRegular: r.precioRegular === null ? null : Number(r.precioRegular),
+  imagen: r.imagen ?? null,
+}))
 }
