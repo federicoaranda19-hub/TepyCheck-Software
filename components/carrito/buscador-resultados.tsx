@@ -72,25 +72,44 @@ function FilaProducto({
 
   return (
     <li className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="font-medium leading-snug">{producto.descripcion}</p>
-        <p className="text-xs text-muted-foreground">
-          {producto.marca} · {producto.rubro}
-          {enCarrito > 0 && <span className="ml-2 font-medium text-accent-foreground">({enCarrito} en carrito)</span>}
-        </p>
-        <p className="mt-1 text-sm">
-          {precio.promo !== null ? (
-            <>
-              <span className="mr-2 text-muted-foreground line-through">{formatPrecio(precio.regular)}</span>
-              <span className="font-semibold text-accent-foreground">{formatPrecio(precio.promo)}</span>
-              <span className="ml-2 rounded bg-teal px-1.5 py-0.5 text-xs font-medium text-teal-foreground">
-                {precio.promoTitulo}
-              </span>
-            </>
-          ) : (
-            <span className="font-semibold">{formatPrecio(precio.regular)}</span>
-          )}
-        </p>
+      <div className="flex min-w-0 items-start gap-3">
+        {producto.imagen ? (
+          <img
+            src={producto.imagen}
+            alt=""
+            className="h-12 w-12 shrink-0 rounded-lg border object-cover"
+          />
+        ) : (
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border bg-muted text-[10px] text-muted-foreground">
+            —
+          </div>
+        )}
+        <div className="min-w-0">
+          <p className="font-medium leading-snug">{producto.descripcion}</p>
+          <p className="text-xs text-muted-foreground">
+            {producto.marca} · {producto.rubro}
+            {enCarrito > 0 && (
+              <span className="ml-2 font-medium text-accent-foreground">({enCarrito} en carrito)</span>
+            )}
+          </p>
+          <p className="mt-1 text-sm">
+            {precio.promo !== null ? (
+              <>
+                <span className="mr-2 text-muted-foreground line-through">
+                  {formatPrecio(precio.regular)}
+                </span>
+                <span className="font-semibold text-accent-foreground">
+                  {formatPrecio(precio.promo)}
+                </span>
+                <span className="ml-2 rounded bg-teal px-1.5 py-0.5 text-xs font-medium text-teal-foreground">
+                  {precio.promoTitulo}
+                </span>
+              </>
+            ) : (
+              <span className="font-semibold">{formatPrecio(precio.regular)}</span>
+            )}
+          </p>
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <div className="flex items-center rounded-md border">
