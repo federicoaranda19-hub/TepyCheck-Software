@@ -40,14 +40,14 @@ export function FiltrosProductos({
           Buscar productos
         </Label>
 
-        <Input
-          id="busqueda"
-          type="search"
-          placeholder="Buscar producto, marca o rubro..."
-          value={filtros.busqueda}
-          onChange={(e) => set('busqueda', e.target.value)}
-          className="h-11 border-slate-300 bg-white pl-9 text-slate-900 placeholder:text-slate-500 focus-visible:ring-teal-500"
-        />
+<input
+  id="busqueda"
+  type="search"
+  placeholder="Buscar producto, marca o rubro..."
+  value={filtros.busqueda}
+  onChange={(e) => set('busqueda', e.target.value)}
+  className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-teal-500"
+/>
       </div>
 
       {/* Filtros azul oscuro */}

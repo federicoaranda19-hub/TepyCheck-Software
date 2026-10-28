@@ -42,7 +42,12 @@ export function filtrarProductos(
           : Object.values(p.precios).some((x) => x.promo != null)
       if (!tieneOferta) return false
     }
-    if (q && !normalizar(`${p.descripcion} ${p.marca} ${p.rubro}`).includes(q)) return false
+    if (q) {
+  const texto = normalizar(`${p.descripcion} ${p.marca}`)
+  // Todas las palabras de la búsqueda deben aparecer
+  const palabras = q.split(/\s+/).filter(Boolean)
+  if (!palabras.every((palabra) => texto.includes(palabra))) return false
+}
     return true
   })
   lista.sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es'))
