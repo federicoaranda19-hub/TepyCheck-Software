@@ -123,19 +123,19 @@ export function Carrito({
           <h1 className="text-2xl font-bold md:text-3xl">Carrito</h1>
           <p className="mt-1 text-muted-foreground">Elegí el supermercado y armá tu compra.</p>
         </div>
-        <div className="flex flex-col gap-1.5 md:w-72">
-          <span id="super-label" className="text-sm font-medium">
+        <div className="flex flex-col gap-1.5 md:w-80">
+          <span id="super-label" className="text-base font-semibold">
             Supermercado
           </span>
           <Select
             value={supermercadoId ? String(supermercadoId) : undefined}
             onValueChange={(v) => setSupermercadoId(Number(v))}
           >
-<SelectTrigger aria-labelledby="super-label" className="h-11 w-full bg-card">
-  <SelectValue placeholder="Seleccioná un supermercado">
-    {supermercado?.nombre ?? 'Seleccioná un supermercado'}
-  </SelectValue>
-</SelectTrigger>
+            <SelectTrigger aria-labelledby="super-label" className="h-12 w-full bg-card text-base">
+              <SelectValue placeholder="Seleccioná un supermercado">
+                {supermercado?.nombre ?? 'Seleccioná un supermercado'}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               {supermercados.map((s) => (
                 <SelectItem key={s.id} value={String(s.id)}>

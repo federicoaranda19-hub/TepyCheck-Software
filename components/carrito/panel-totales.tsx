@@ -12,21 +12,25 @@ export function PanelTotales({
   return (
     <section
       aria-label="Totales"
-      className="hidden flex-col gap-3 rounded-xl bg-brand p-5 text-brand-foreground shadow-md lg:flex"
+      className="hidden flex-col gap-4 rounded-xl bg-brand p-5 text-brand-foreground shadow-md lg:flex"
     >
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-white/75">Cantidad total</span>
-        <span className="font-semibold tabular-nums">{cantidad}</span>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-base font-semibold text-white">Cantidad total</span>
+        <span className="text-2xl font-bold tabular-nums">{cantidad}</span>
       </div>
+
       {ahorro > 0.009 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-white/75">Ahorro por promos</span>
-          <span className="font-semibold text-teal tabular-nums brightness-150">-{formatPrecio(ahorro)}</span>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-white/80">Ahorro por promos</span>
+          <span className="font-semibold text-teal tabular-nums brightness-150">
+            -{formatPrecio(ahorro)}
+          </span>
         </div>
       )}
+
       <div className="border-t border-white/15 pt-3">
-        <span className="text-sm text-white/75">Monto total</span>
-        <p className="text-3xl font-bold tabular-nums" aria-live="polite">
+        <span className="text-base font-semibold text-white">Monto total</span>
+        <p className="mt-1 text-3xl font-bold tabular-nums" aria-live="polite">
           {formatPrecio(total)}
         </p>
       </div>
