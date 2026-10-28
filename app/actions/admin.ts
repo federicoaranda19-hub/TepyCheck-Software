@@ -144,6 +144,28 @@ export async function crearPromocion(form: FormData) {
   refrescar()
 }
 
+export async function editarPromocion(form: FormData) {
+  await assertAdmin()
+  const id = entero(form, 'id')
+  const fechaInicio = fecha(form, 'fechaInicio')
+  const fechaFin = fecha(form, 'fechaFin')
+  if (fechaFin < fechaInicio) throw new Error('La fecha de fin debe ser posterior al inicio')
+
+  await db
+    .update(promociones)
+    .set({
+      productoId: entero(form, 'productoId'),
+      supermercadoId: entero(form, 'supermercadoId'),
+      titulo: texto(form, 'titulo', 80),
+      precioPromo: precio(form, 'precioPromo'),
+      fechaInicio,
+      fechaFin,
+    })
+    .where(eq(promociones.id, id))
+
+  refrescar()
+}
+
 export async function togglePromocion(form: FormData) {
   await assertAdmin()
   const id = entero(form, 'id')
