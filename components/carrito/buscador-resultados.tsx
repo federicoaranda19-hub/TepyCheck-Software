@@ -22,7 +22,11 @@ export function BuscadorResultados({
   const [verTodos, setVerTodos] = useState(false)
 
   if (supermercadoId === null) {
-    return <p className="text-sm text-muted-foreground">Seleccioná un supermercado para ver productos.</p>
+    return (
+      <p className="text-sm text-muted-foreground">
+        Seleccioná un supermercado para ver productos.
+      </p>
+    )
   }
   if (productos.length === 0) {
     return (
@@ -48,7 +52,12 @@ export function BuscadorResultados({
         ))}
       </ul>
       {productos.length > VISIBLES && (
-        <Button variant="ghost" size="sm" onClick={() => setVerTodos((v) => !v)} className="self-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setVerTodos((v) => !v)}
+          className="self-center"
+        >
           {verTodos ? 'Ver menos' : `Ver los ${productos.length} productos`}
         </Button>
       )}
@@ -67,8 +76,16 @@ function FilaProducto({
   enCarrito: number
   onAgregar: (id: number, cantidad: number) => void
 }) {
-  const [cantidad, setCantidad] = useState(1)
+  const esKg = producto.unidad.trim().toLowerCase() === 'kg'
+  const paso = esKg ? 0.25 : 1
+  const minimo = esKg ? 0.25 : 1
+
+  const [cantidad, setCantidad] = useState(minimo)
   const precio = producto.precios[supermercadoId]
+
+  function redondear(n: number) {
+    return Math.round(n * 1000) / 1000
+  }
 
   return (
     <li className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -88,8 +105,11 @@ function FilaProducto({
           <p className="font-medium leading-snug">{producto.descripcion}</p>
           <p className="text-xs text-muted-foreground">
             {producto.marca} · {producto.rubro}
+            {esKg && <span className="ml-1">(por kg)</span>}
             {enCarrito > 0 && (
-              <span className="ml-2 font-medium text-accent-foreground">({enCarrito} en carrito)</span>
+              <span className="ml-2 font-medium text-accent-foreground">
+                ({esKg ? enCarrito.toFixed(2) : enCarrito} en carrito)
+              </span>
             )}
           </p>
           <p className="mt-1 text-sm">
@@ -111,24 +131,25 @@ function FilaProducto({
           </p>
         </div>
       </div>
+
       <div className="flex shrink-0 items-center gap-2">
         <div className="flex items-center rounded-md border">
           <Button
             variant="ghost"
             size="icon"
             aria-label="Restar cantidad"
-            onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+            onClick={() => setCantidad((c) => redondear(Math.max(minimo, c - paso)))}
           >
             <Minus />
           </Button>
-          <span className="w-8 text-center text-sm tabular-nums" aria-live="polite">
-            {cantidad}
+          <span className="w-12 text-center text-sm tabular-nums" aria-live="polite">
+            {esKg ? cantidad.toFixed(2) : cantidad}
           </span>
           <Button
             variant="ghost"
             size="icon"
             aria-label="Sumar cantidad"
-            onClick={() => setCantidad((c) => Math.min(99, c + 1))}
+            onClick={() => setCantidad((c) => redondear(Math.min(99, c + paso)))}
           >
             <Plus />
           </Button>
@@ -136,7 +157,7 @@ function FilaProducto({
         <Button
           onClick={() => {
             onAgregar(producto.id, cantidad)
-            setCantidad(1)
+            setCantidad(minimo)
           }}
           aria-label={`Agregar ${producto.descripcion}`}
         >

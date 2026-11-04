@@ -24,7 +24,7 @@ type Resultado = { ok: true; id: number } | { ok: false; error: string }
 type LineaItem = {
   productoId: number
   descripcion: string
-  cantidad: number
+  cantidad: string
   precioRegular: string
   precioAbonar: string
   subtotal: string
@@ -56,12 +56,15 @@ export async function guardarSimulacion(
   for (const item of items) {
     if (
       !Number.isInteger(item.productoId) ||
-      !Number.isInteger(item.cantidad) ||
+      !Number.isFinite(item.cantidad) ||
       item.cantidad <= 0
     ) {
       return { ok: false, error: 'Hay cantidades inválidas en el carrito.' }
     }
-    const total = (cantidades.get(item.productoId) ?? 0) + item.cantidad
+
+    // Redondear a 3 decimales (útil para kg)
+    const cantidad = Math.round(item.cantidad * 1000) / 1000
+    const total = (cantidades.get(item.productoId) ?? 0) + cantidad
     if (total > MAX_CANTIDAD) {
       return { ok: false, error: `La cantidad máxima por producto es ${MAX_CANTIDAD}.` }
     }
@@ -126,7 +129,7 @@ export async function guardarSimulacion(
     lineas.push({
       productoId,
       descripcion: prod.descripcion,
-      cantidad,
+      cantidad: cantidad.toFixed(3),
       precioRegular: regular.toFixed(2),
       precioAbonar: abonar.toFixed(2),
       subtotal: subtotal.toFixed(2),
@@ -140,7 +143,8 @@ export async function guardarSimulacion(
         userId,
         supermercadoId,
         supermercadoNombre: superRow.nombre,
-        cantidadProductos,
+        // la columna sigue siendo integer: guardamos el total redondeado
+        cantidadProductos: Math.round(cantidadProductos),
         montoRegular: montoRegular.toFixed(2),
         montoTotal: montoTotal.toFixed(2),
       })

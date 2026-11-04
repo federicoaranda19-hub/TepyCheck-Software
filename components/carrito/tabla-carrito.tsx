@@ -35,29 +35,67 @@ export function TablaCarrito({ lineas, onModificar, onEliminar }: Props) {
     )
   }
 
+  function esKg(l: LineaCarrito) {
+    return l.producto.unidad.trim().toLowerCase() === 'kg'
+  }
+
   function iniciar(l: LineaCarrito) {
     setEditando(l.producto.id)
-    setValor(String(l.cantidad))
+    setValor(esKg(l) ? String(l.cantidad) : String(Math.round(l.cantidad)))
   }
 
   function confirmar(id: number) {
-    const n = Number.parseInt(valor, 10)
-    if (Number.isInteger(n) && n > 0) onModificar(id, n)
+    const linea = lineas.find((l) => l.producto.id === id)
+    if (!linea) {
+      setEditando(null)
+      return
+    }
+
+    // Acepta coma o punto
+    const n = Number.parseFloat(valor.replace(',', '.'))
+    if (!Number.isFinite(n) || n <= 0) {
+      setEditando(null)
+      return
+    }
+
+    const minimo = esKg(linea) ? 0.25 : 1
+    const cantidad = Math.round(n * 1000) / 1000
+    if (cantidad < minimo) {
+      setEditando(null)
+      return
+    }
+
+    onModificar(id, cantidad)
     setEditando(null)
   }
 
   const precio = (v: number | null) => (v === null ? '—' : formatPrecio(v))
+
+  function textoCantidad(l: LineaCarrito) {
+    if (esKg(l)) return `${l.cantidad.toFixed(2)} kg`
+    return String(l.cantidad)
+  }
 
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <table className="w-full text-sm">
         <thead className="hidden bg-brand text-left text-brand-foreground md:table-header-group">
           <tr>
-            <th scope="col" className="px-3 py-2.5 font-medium">Descripción</th>
-            <th scope="col" className="px-3 py-2.5 text-center font-medium">Cantidad</th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">Precio Regular</th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">Precio a Abonar</th>
-            <th scope="col" className="px-3 py-2.5 text-right font-medium">Subtotal</th>
+            <th scope="col" className="px-3 py-2.5 font-medium">
+              Descripción
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-center font-medium">
+              Cantidad
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-right font-medium">
+              Precio Regular
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-right font-medium">
+              Precio a Abonar
+            </th>
+            <th scope="col" className="px-3 py-2.5 text-right font-medium">
+              Subtotal
+            </th>
             <th scope="col" className="px-3 py-2.5 text-right font-medium">
               <span className="sr-only">Acciones</span>
             </th>
@@ -67,13 +105,20 @@ export function TablaCarrito({ lineas, onModificar, onEliminar }: Props) {
           {lineas.map((l) => {
             const id = l.producto.id
             const enEdicion = editando === id
+            const kg = esKg(l)
+
             return (
               <tr key={id} className="grid grid-cols-2 gap-x-3 gap-y-1 p-3 md:table-row md:p-0">
                 <td className="col-span-2 md:px-3 md:py-3">
                   <span className="font-medium">{l.producto.descripcion}</span>
-                  <span className="block text-xs text-muted-foreground">{l.producto.marca}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {l.producto.marca}
+                    {kg && ' · por kg'}
+                  </span>
                   {l.subtotal === null && (
-                    <span className="block text-xs text-destructive">No disponible en este supermercado</span>
+                    <span className="block text-xs text-destructive">
+                      No disponible en este supermercado
+                    </span>
                   )}
                 </td>
                 <td className="md:px-3 md:py-3 md:text-center">
@@ -88,12 +133,13 @@ export function TablaCarrito({ lineas, onModificar, onEliminar }: Props) {
                     >
                       <Input
                         type="number"
-                        min={1}
+                        min={kg ? 0.25 : 1}
                         max={999}
+                        step={kg ? 0.25 : 1}
                         value={valor}
                         onChange={(e) => setValor(e.target.value)}
                         aria-label={`Cantidad de ${l.producto.descripcion}`}
-                        className="h-8 w-16"
+                        className="h-8 w-20"
                         autoFocus
                       />
                       <Button type="submit" size="icon-sm" aria-label="Confirmar cantidad">
@@ -101,7 +147,7 @@ export function TablaCarrito({ lineas, onModificar, onEliminar }: Props) {
                       </Button>
                     </form>
                   ) : (
-                    <span className="font-medium tabular-nums">{l.cantidad}</span>
+                    <span className="font-medium tabular-nums">{textoCantidad(l)}</span>
                   )}
                 </td>
                 <td className="text-right tabular-nums md:px-3 md:py-3">
@@ -117,7 +163,9 @@ export function TablaCarrito({ lineas, onModificar, onEliminar }: Props) {
                   </span>
                 </td>
                 <td className="text-right font-semibold tabular-nums md:px-3 md:py-3">
-                  <span className="mr-1 text-xs font-normal text-muted-foreground md:hidden">Subtotal:</span>
+                  <span className="mr-1 text-xs font-normal text-muted-foreground md:hidden">
+                    Subtotal:
+                  </span>
                   {precio(l.subtotal)}
                 </td>
                 <td className="col-span-2 flex justify-end gap-1 md:table-cell md:px-3 md:py-3 md:text-right">

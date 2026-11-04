@@ -115,7 +115,7 @@ export const simulacionItems = pgTable('simulacion_items', {
   simulacionId: integer('simulacionId').notNull(),
   productoId: integer('productoId').notNull(),
   descripcion: text('descripcion').notNull(),
-  cantidad: integer('cantidad').notNull(),
+  cantidad: numeric('cantidad').notNull(),
   precioRegular: numeric('precioRegular').notNull(),
   precioAbonar: numeric('precioAbonar').notNull(),
   subtotal: numeric('subtotal').notNull(),

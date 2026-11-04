@@ -64,16 +64,24 @@ export function Carrito({
   }
 
   function agregar(productoId: number, cantidad: number) {
+    const cant = Math.round(cantidad * 1000) / 1000
     setCantidades((prev) => ({
       ...prev,
-      [productoId]: Math.min(999, (prev[productoId] ?? 0) + cantidad),
+      [productoId]: Math.min(999, Math.round(((prev[productoId] ?? 0) + cant) * 1000) / 1000),
     }))
     const p = productos.find((x) => x.id === productoId)
     toast.success(`Agregado: ${p?.descripcion ?? 'producto'}`)
   }
 
   function modificar(productoId: number, cantidad: number) {
-    setCantidades((prev) => ({ ...prev, [productoId]: Math.max(1, Math.min(999, cantidad)) }))
+    const producto = productos.find((p) => p.id === productoId)
+    const esKg = producto?.unidad.trim().toLowerCase() === 'kg'
+    const minimo = esKg ? 0.25 : 1
+    const cant = Math.round(cantidad * 1000) / 1000
+    setCantidades((prev) => ({
+      ...prev,
+      [productoId]: Math.max(minimo, Math.min(999, cant)),
+    }))
   }
 
   function eliminar(productoId: number) {
@@ -119,10 +127,21 @@ export function Carrito({
   return (
     <div className="flex flex-col gap-6 pb-24 lg:pb-0">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold md:text-3xl">Carrito</h1>
-          <p className="mt-1 text-muted-foreground">Elegí el supermercado y armá tu compra.</p>
+          <p className="mt-2 text-base font-medium text-foreground md:text-lg">
+            Elegí el supermercado y armá tu compra.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            En productos por kg el total es referencial; en caja puede variar según el peso.
+          </p>
+          {supermercado && (
+            <p className="mt-3 text-base font-semibold text-brand md:text-lg">
+              Calculando en: {supermercado.nombre}
+            </p>
+          )}
         </div>
+
         <div className="flex flex-col gap-1.5 md:w-80">
           <span id="super-label" className="text-base font-semibold">
             Supermercado
@@ -163,7 +182,7 @@ export function Carrito({
           </section>
 
           <section aria-labelledby="carrito-titulo" className="flex flex-col gap-3">
-            <h2 id="carrito-titulo" className="font-semibold">
+            <h2 id="carrito-titulo" className="text-lg font-semibold">
               Mi carrito{supermercado ? ` en ${supermercado.nombre}` : ''}
             </h2>
             <TablaCarrito lineas={lineas} onModificar={modificar} onEliminar={eliminar} />
