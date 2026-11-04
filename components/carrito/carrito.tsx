@@ -18,10 +18,13 @@ import { FILTROS_INICIALES, filtrarProductos, opciones, precioAbonar } from '@/l
 export function Carrito({
   supermercados,
   productos,
+  puedeGuardarHistorial = true,
 }: {
   supermercados: Supermercado[]
   productos: ProductoCatalogo[]
+  puedeGuardarHistorial?: boolean
 }) {
+
   const router = useRouter()
   const [supermercadoId, setSupermercadoId] = useState<number | null>(supermercados[0]?.id ?? null)
   const [cantidades, setCantidades] = useState<Record<number, number>>({})
@@ -205,14 +208,16 @@ export function Carrito({
               <FileText aria-hidden="true" />
               Ver Presupuesto
             </Button>
-            <Button
-              className="h-11 bg-teal text-teal-foreground hover:bg-teal/90"
-              onClick={generarResumen}
-              disabled={guardando || disponibles.length === 0}
-            >
-              <Receipt aria-hidden="true" />
-              {guardando ? 'Guardando...' : 'Generar Resumen'}
-            </Button>
+{puedeGuardarHistorial && (
+  <Button
+    className="h-11 bg-teal text-teal-foreground hover:bg-teal/90"
+    onClick={generarResumen}
+    disabled={guardando || disponibles.length === 0}
+  >
+    <Receipt aria-hidden="true" />
+    {guardando ? 'Guardando...' : 'Generar Resumen'}
+  </Button>
+)}
             <Button variant="outline" className="h-11 bg-card" onClick={cancelar} disabled={lineas.length === 0}>
               <X aria-hidden="true" />
               Cancelar
@@ -232,14 +237,16 @@ export function Carrito({
             {new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(totales.total)}
           </span>
         </div>
-        <Button
-          className="h-11 bg-teal text-teal-foreground hover:bg-teal/90"
-          onClick={generarResumen}
-          disabled={guardando || disponibles.length === 0}
-        >
-          <Receipt aria-hidden="true" />
-          Generar Resumen
-        </Button>
+{puedeGuardarHistorial && (
+  <Button
+    className="h-11 bg-teal text-teal-foreground hover:bg-teal/90"
+    onClick={generarResumen}
+    disabled={guardando || disponibles.length === 0}
+  >
+    <Receipt aria-hidden="true" />
+    Generar Resumen
+  </Button>
+)}
       </div>
 
       {verPresupuesto && supermercado && (

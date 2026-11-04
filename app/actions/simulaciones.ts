@@ -32,7 +32,10 @@ type LineaItem = {
 
 async function getUserId() {
   const user = await getCurrentUser()
+
   if (!user) throw new Error('Unauthorized')
+  if (user.role !== 'cliente') throw new Error('Unauthorized')
+
   return user.id
 }
 
